@@ -6,7 +6,7 @@ use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
-const NAME: &str = "b3sum";
+const NAME: &str = "blobsum";
 
 const DERIVE_KEY_ARG: &str = "derive_key";
 const KEYED_ARG: &str = "keyed";
@@ -503,7 +503,7 @@ fn main() -> Result<()> {
                 check_one_checkfile(path, &args, &mut files_failed)?;
             } else {
                 // Errors encountered in hashing are tolerated and printed to
-                // stderr. This allows e.g. `b3sum *` to print errors for
+                // stderr. This allows e.g. `blobsum *` to print errors for
                 // non-files and keep going. However, if we encounter any
                 // errors we'll still return non-zero at the end.
                 let result = hash_one_input(path, &args);
