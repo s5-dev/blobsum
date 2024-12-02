@@ -91,12 +91,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "blobcalc"
+name = "blobsum"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "blake3",
  "clap",
+ "data-encoding",
  "hex",
  "rayon-core",
  "wild",
@@ -194,6 +195,12 @@ name = "crossbeam-utils"
 version = "0.8.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22ec99545bb0ed0ea7bb9b8e1e9122ea386ff8a48c0922e43f36d45ab09e0e80"
+
+[[package]]
+name = "data-encoding"
+version = "2.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "errno"

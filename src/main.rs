@@ -178,7 +178,7 @@ fn hash_path(args: &Args, path: &Path) -> Result<blake3::OutputReader> {
     Ok(output_reader)
 }
 
-fn write_hex_output(mut output: blake3::OutputReader, args: &Args) -> Result<()> {
+fn write_blob_output(mut output: blake3::OutputReader, args: &Args, blob_size: u64) -> Result<()> {
     // Encoding multiples of the 64 bytes is most efficient.
     // TODO: This computes each output block twice when the --seek argument isn't a multiple of 64.
     // We'll refactor all of this soon anyway, once SIMD optimizations are available for the XOF.
@@ -186,9 +186,24 @@ fn write_hex_output(mut output: blake3::OutputReader, args: &Args) -> Result<()>
     let mut block = [0; blake3::guts::BLOCK_LEN];
     while len > 0 {
         output.fill(&mut block);
-        let hex_str = hex::encode(&block[..]);
+        let mut cid_size_bytes = blob_size.to_le_bytes().to_vec();
+        if let Some(pos) = cid_size_bytes.iter().rposition(|&x| x != 0) {
+            cid_size_bytes.truncate(pos + 1);
+        }
+        let cid_prefix_bytes = vec![
+            0x5b, // S5 Blob CID magic byte
+            0x82, // S5 Blob Type Plaintext (Unencrypted, just a simple blob)
+            0x1e, // multihash blake3
+        ];
+
+        let cid_bytes = [cid_prefix_bytes, block[..32].to_vec(), cid_size_bytes].concat();
         let take_bytes = cmp::min(len, block.len() as u64);
-        print!("{}", &hex_str[..2 * take_bytes as usize]);
+        print!(
+            "b{}",
+            data_encoding::BASE32_NOPAD
+                .encode(&cid_bytes)
+                .to_lowercase()
+        );
         len -= take_bytes;
     }
     Ok(())
@@ -374,12 +389,13 @@ fn parse_check_line(mut line: &str) -> Result<ParsedCheckLine> {
 
 fn hash_one_input(path: &Path, args: &Args) -> Result<()> {
     let output = hash_path(args, path)?;
+    let size = std::fs::metadata(&path).map(|m| m.len())?;
     if args.raw() {
         write_raw_output(output, args)?;
         return Ok(());
     }
     if args.no_names() {
-        write_hex_output(output, args)?;
+        write_blob_output(output, args, size)?;
         println!();
         return Ok(());
     }
@@ -390,7 +406,7 @@ fn hash_one_input(path: &Path, args: &Args) -> Result<()> {
     if is_escaped {
         print!("\\");
     }
-    write_hex_output(output, args)?;
+    write_blob_output(output, args, size)?;
     println!("  {}", filepath_string);
     Ok(())
 }
