@@ -1,10 +1,13 @@
 use anyhow::{bail, ensure, Result};
+use base64::Engine;
 use clap::Parser;
 use std::cmp;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+
+mod image;
 
 const NAME: &str = "blobsum";
 
@@ -205,6 +208,23 @@ fn write_blob_output(mut output: blake3::OutputReader, args: &Args, blob_size: u
                 .to_lowercase()
         );
         len -= take_bytes;
+
+        if image::kitty::has_kitty_support() {
+            let li = lifehash_lib::lifehash::from_digest(
+                &block[..32],
+                lifehash_lib::Version::Version2,
+                1,
+                false,
+            )?
+            .0;
+            let encoded = base64::engine::general_purpose::STANDARD.encode(li.pixels);
+            print!(" ");
+            print!(
+                "\x1b_Gf=24,a=T,t=d,s={},v={},c={},r={},m=1;{}\x1b\\",
+                li.width, li.height, 2, 1, encoded,
+            );
+            print!("\x1b_Gm=0;\x1b\\");
+        }
     }
     Ok(())
 }
