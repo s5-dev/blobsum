@@ -2,6 +2,9 @@
 name = "blobsum"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "A command line utility for calculating S5 blob identifiers (with blake3) and viewing their lifehash (only in kitty)"
+repository = "https://github.com/s5-dev/blobsum"
 
 [dependencies]
 anyhow = "1.0.25"
